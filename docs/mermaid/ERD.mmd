@@ -1,0 +1,113 @@
+erDiagram
+USERS {
+bigint id PK
+varchar name
+varchar email UK
+varchar password
+varchar phone
+varchar business_name
+text address
+decimal latitude
+decimal longitude
+boolean is_active
+timestamp created_at
+timestamp updated_at
+}
+
+```
+ROLES {
+    bigint id PK
+    varchar name
+    timestamp created_at
+    timestamp updated_at
+}
+
+ROLE_USER {
+    bigint id PK
+    bigint user_id FK
+    bigint role_id FK
+    timestamp created_at
+    timestamp updated_at
+}
+
+WASTE_CATEGORIES {
+    bigint id PK
+    varchar name
+    varchar slug
+    text description
+    boolean is_active
+    timestamp created_at
+    timestamp updated_at
+}
+
+WASTE_POSTS {
+    bigint id PK
+    bigint user_id FK
+    bigint waste_category_id FK
+    varchar title
+    text description
+    decimal quantity_kg
+    decimal price
+    boolean is_free
+    text address
+    decimal latitude
+    decimal longitude
+    date available_date
+    date expiry_date
+    varchar image_path
+    varchar status
+    integer claim_radius_km
+    timestamp created_at
+    timestamp updated_at
+}
+
+WASTE_CLAIMS {
+    bigint id PK
+    bigint waste_post_id FK
+    bigint producer_id FK
+    bigint receiver_id FK
+    varchar status
+    text receiver_message
+    timestamp approved_at
+    timestamp rejected_at
+    timestamp completed_at
+    timestamp created_at
+    timestamp updated_at
+}
+
+WASTE_RECOMMENDATIONS {
+    bigint id PK
+    bigint waste_category_id FK
+    varchar title
+    text description
+    varchar usage_type
+    text reference_notes
+    boolean is_active
+    timestamp created_at
+    timestamp updated_at
+}
+
+TRANSACTION_LOGS {
+    bigint id PK
+    bigint waste_post_id FK
+    bigint actor_user_id FK
+    varchar action
+    text notes
+    timestamp created_at
+}
+
+USERS ||--o{ ROLE_USER : has
+ROLES ||--o{ ROLE_USER : assigned_to
+
+USERS ||--o{ WASTE_POSTS : creates
+WASTE_CATEGORIES ||--o{ WASTE_POSTS : categorizes
+
+WASTE_CATEGORIES ||--o{ WASTE_RECOMMENDATIONS : has
+
+WASTE_POSTS ||--o{ WASTE_CLAIMS : receives
+USERS ||--o{ WASTE_CLAIMS : producer
+USERS ||--o{ WASTE_CLAIMS : receiver
+
+WASTE_POSTS ||--o{ TRANSACTION_LOGS : tracked_by
+USERS ||--o{ TRANSACTION_LOGS : acts
+```

@@ -1,0 +1,48 @@
+flowchart TD
+A[Landing Page] --> B{Sudah punya akun?}
+B -- Belum --> C[Register]
+B -- Sudah --> D[Login]
+
+```
+C --> D
+D --> E{Role User}
+
+E -->|Producer| F[Dashboard Producer]
+E -->|Receiver| G[Halaman Daftar Limbah]
+E -->|Admin| H[Dashboard Admin]
+
+%% Producer Flow
+F --> F1[Lengkapi Profil]
+F1 --> F2[Buat Posting Limbah]
+F2 --> F3[Isi Form Limbah]
+F3 --> F4[Simpan Posting]
+F4 --> F5[Posting Tampil di Listing]
+F5 --> F6[Lihat Claim Masuk]
+F6 --> F7{Setujui Claim?}
+F7 -- Ya --> F8[Claim Approved]
+F7 -- Tidak --> F9[Claim Rejected]
+F8 --> F10[Komunikasi Lanjutan]
+F10 --> F11[Tandai Transaksi Selesai]
+
+%% Receiver Flow
+G --> G1[Filter Kategori]
+G --> G2[Filter Jarak]
+G1 --> G3[Lihat Daftar Limbah]
+G2 --> G3
+G3 --> G4[Buka Detail Limbah]
+G4 --> G5[Lihat Rekomendasi Pemanfaatan]
+G5 --> G6[Claim Limbah]
+G6 --> G7[Status Claim Pending]
+G7 --> G8{Producer Approve?}
+G8 -- Ya --> G9[Claim Approved]
+G8 -- Tidak --> G10[Claim Rejected]
+
+%% Admin Flow
+H --> H1[Lihat Statistik]
+H --> H2[Kelola User]
+H --> H3[Kelola Limbah]
+H --> H4[Kelola Claim]
+H --> H5[Kelola Kategori]
+H --> H6[Kelola Rekomendasi]
+H1 --> H7[Grafik Tren]
+```
