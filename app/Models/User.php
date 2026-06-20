@@ -28,8 +28,8 @@ use Illuminate\Notifications\Notifiable;
 #[Casts([
     'email_verified_at' => 'datetime',
     'password' => 'hashed',
-    'latitude' => 'decimal:6',
-    'longitude' => 'decimal:6',
+    'latitude' => 'float',
+    'longitude' => 'float',
     'location_updated_at' => 'datetime',
     'is_active' => 'boolean',
 ])]

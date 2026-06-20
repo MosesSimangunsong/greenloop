@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -48,14 +49,20 @@ class LocationController extends Controller
             return response()->json(['message' => 'Tidak diizinkan.'], 403);
         }
 
-        if (!$target->latitude || !$target->longitude) {
+        if (is_null($target->latitude) || is_null($target->longitude)) {
             return response()->json(['message' => 'Lokasi belum tersedia.'], 404);
         }
 
+        $locationUpdatedAt = $target->location_updated_at;
+
+        if (is_string($locationUpdatedAt)) {
+            $locationUpdatedAt = Carbon::parse($locationUpdatedAt);
+        }
+
         return response()->json([
-            'latitude'           => $target->latitude,
-            'longitude'          => $target->longitude,
-            'location_updated_at' => $target->location_updated_at?->toISOString(),
+            'latitude' => (float) $target->latitude,
+            'longitude' => (float) $target->longitude,
+            'location_updated_at' => $locationUpdatedAt?->toIso8601String(),
             'name'               => $target->name,
         ]);
     }

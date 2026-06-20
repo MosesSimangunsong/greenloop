@@ -43,7 +43,7 @@ function IncomingClaimCard({ claim, onAction }) {
 
     const fetchLocation = (silent = false) => {
         if (!silent) setLoadingMap(true);
-        axios.get(route('location.show', claim.counterparty.id))
+        axios.get(route('location.show', { userId: claim.counterparty.id }))
             .then((res) => {
                 setReceiverLocation(res.data);
                 setLastUpdated(new Date());

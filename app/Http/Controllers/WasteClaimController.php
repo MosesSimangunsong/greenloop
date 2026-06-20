@@ -112,11 +112,13 @@ class WasteClaimController extends Controller
             ],
             'counterparty' => $mode === 'producer'
                 ? [
+                    'id' => $claim->receiver->id,
                     'name' => $claim->receiver->name,
                     'business_name' => $claim->receiver->business_name,
                     'phone' => $claim->receiver->phone,
                 ]
                 : [
+                    'id' => $claim->producer->id,
                     'name' => $claim->producer->name,
                     'business_name' => $claim->producer->business_name,
                     'phone' => $claim->producer->phone,

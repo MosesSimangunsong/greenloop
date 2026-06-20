@@ -88,6 +88,22 @@ export default function Welcome() {
         return () => window.removeEventListener('scroll', onScroll);
     }, []);
 
+    const handleSectionNavigate = (event, sectionId) => {
+        event.preventDefault();
+
+        const section = document.getElementById(sectionId);
+        if (!section) return;
+
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        section.scrollIntoView({
+            behavior: reduceMotion ? 'auto' : 'smooth',
+            block: 'start',
+        });
+
+        window.history.replaceState(null, '', `#${sectionId}`);
+    };
+
     return (
         <>
             <Head title="GreenLoop — Pertukaran Limbah Organik Toba" />
@@ -110,10 +126,18 @@ export default function Welcome() {
                         </span>
 
                         <nav className="hidden items-center gap-8 text-sm font-semibold md:flex">
-                            <a href="#cara-kerja" className="transition-colors duration-200 hover:text-[#5C8A00]">
+                            <a
+                                href="#cara-kerja"
+                                onClick={(event) => handleSectionNavigate(event, 'cara-kerja')}
+                                className="transition-colors duration-200 hover:text-[#5C8A00]"
+                            >
                                 Cara kerja
                             </a>
-                            <a href="#fitur" className="transition-colors duration-200 hover:text-[#5C8A00]">
+                            <a
+                                href="#fitur"
+                                onClick={(event) => handleSectionNavigate(event, 'fitur')}
+                                className="transition-colors duration-200 hover:text-[#5C8A00]"
+                            >
                                 Fitur
                             </a>
                         </nav>

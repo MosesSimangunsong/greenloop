@@ -47,7 +47,7 @@ function ClaimCard({ claim, onCancel }) {
 
     const fetchLocation = (silent = false) => {
         if (!silent) setLoadingMap(true);
-        axios.get(route('location.show', claim.counterparty.id))
+        axios.get(route('location.show', { userId: claim.counterparty.id }))
             .then((res) => {
                 setProducerLocation(res.data);
                 setLastUpdated(new Date());
