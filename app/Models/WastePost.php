@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\WastePostStatus;
-use Illuminate\Database\Eloquent\Attributes\Casts;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -26,18 +25,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'status',
     'claim_radius_km',
 ])]
-#[Casts([
-    'quantity_kg' => 'decimal:2',
-    'price' => 'decimal:2',
-    'is_free' => 'boolean',
-    'latitude' => 'decimal:6',
-    'longitude' => 'decimal:6',
-    'available_date' => 'date',
-    'expiry_date' => 'date',
-    'status' => WastePostStatus::class,
-])]
 class WastePost extends Model
 {
+    protected function casts(): array
+    {
+        return [
+            'quantity_kg' => 'decimal:2',
+            'price' => 'decimal:2',
+            'is_free' => 'boolean',
+            'latitude' => 'decimal:6',
+            'longitude' => 'decimal:6',
+            'available_date' => 'date',
+            'expiry_date' => 'date',
+            'status' => WastePostStatus::class,
+        ];
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

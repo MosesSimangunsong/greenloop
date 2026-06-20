@@ -9,8 +9,9 @@ export default function Browse({ posts, filters, categories, receiverLocationRea
     const [form, setForm] = useState({
         category_id: filters.category_id ?? '',
         radius_km: filters.radius_km ?? '',
+        search: filters.search ?? '',
+        is_free: filters.is_free ?? false,
     });
-
     const applyFilters = (event) => {
         event.preventDefault();
         router.get(route('waste-posts.index'), form, {
@@ -40,7 +41,20 @@ export default function Browse({ posts, filters, categories, receiverLocationRea
                                 Matching transparan
                             </span>
                         </div>
-                        <form onSubmit={applyFilters} className="grid gap-4 md:grid-cols-[1.3fr_1fr_auto]">
+                        <form onSubmit={applyFilters} className="grid gap-4 md:grid-cols-[1.3fr_1fr_1fr_auto]">
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">Cari</label>
+                                <input
+                                    type="text"
+                                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-700 focus:ring-green-700"
+                                    value={form.search}
+                                    onChange={(event) =>
+                                        setForm((current) => ({ ...current, search: event.target.value }))
+                                    }
+                                    placeholder="Cari judul atau deskripsi limbah"
+                                />
+                            </div>
+
                             <div>
                                 <label className="text-sm font-medium text-gray-700">Kategori</label>
                                 <select
@@ -76,6 +90,21 @@ export default function Browse({ posts, filters, categories, receiverLocationRea
 
                             <div className="flex items-end">
                                 <PrimaryButton>Terapkan filter</PrimaryButton>
+                            </div>
+
+                            <div className="md:col-span-4 flex items-center gap-2">
+                                <input
+                                    id="is_free"
+                                    type="checkbox"
+                                    className="rounded border-gray-300 text-green-700 focus:ring-green-700"
+                                    checked={form.is_free}
+                                    onChange={(event) =>
+                                        setForm((current) => ({ ...current, is_free: event.target.checked }))
+                                    }
+                                />
+                                <label htmlFor="is_free" className="text-sm text-gray-700">
+                                    Hanya tampilkan yang gratis
+                                </label>
                             </div>
                         </form>
 

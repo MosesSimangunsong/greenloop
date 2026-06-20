@@ -4,6 +4,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\WasteClaimController;
 use App\Http\Controllers\WastePostController;
+use App\Http\Controllers\LocationController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -56,5 +57,8 @@ Route::prefix('admin')->middleware('auth')->group(function () {
     Route::patch('/recommendations/{wasteRecommendation}', [AdminController::class, 'updateRecommendation'])->name('admin.recommendations.update');
     Route::get('/analytics', [AdminController::class, 'analytics'])->name('admin.analytics.index');
 });
-
+Route::middleware('auth')->prefix('api')->group(function () {
+    Route::post('/location/update', [LocationController::class, 'update'])->name('location.update');
+    Route::get('/location/{userId}', [LocationController::class, 'show'])->name('location.show');
+});
 require __DIR__.'/auth.php';

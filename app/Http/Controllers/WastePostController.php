@@ -44,10 +44,14 @@ class WastePostController extends Controller
             'posts' => $this->wasteListingService->receiverListing($request->user(), $request->only([
                 'category_id',
                 'radius_km',
+                'search',
+                'is_free',
             ])),
             'filters' => [
                 'category_id' => $request->string('category_id')->toString(),
                 'radius_km' => $request->string('radius_km')->toString(),
+                'search' => $request->string('search')->toString(),
+                'is_free' => $request->boolean('is_free'),
             ],
             'categories' => $this->categories(),
             'receiverLocationReady' => $request->user()?->latitude !== null && $request->user()?->longitude !== null,
@@ -152,7 +156,9 @@ class WastePostController extends Controller
             'expiry_date' => optional($wastePost->expiry_date)->format('Y-m-d'),
             'image_path' => $wastePost->image_path,
             'image_url' => $wastePost->image_path ? Storage::disk('public')->url($wastePost->image_path) : null,
-            'status' => $wastePost->status->value,
+            'status' => $wastePost->status instanceof WastePostStatus
+                ? $wastePost->status->value
+                : $wastePost->status,
             'claim_radius_km' => $wastePost->claim_radius_km,
             'category' => $wastePost->wasteCategory ? [
                 'id' => $wastePost->wasteCategory->id,

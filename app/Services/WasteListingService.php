@@ -22,22 +22,31 @@ class WasteListingService
      * @param array<string, mixed> $filters
      * @return array<int, array<string, mixed>>
      */
-    public function receiverListing(User $user, array $filters = []): array
-    {
-        $radiusKm = $this->resolveRadius($filters['radius_km'] ?? null);
-        $categoryId = $filters['category_id'] ?? null;
-        $userLatitude = $user->latitude !== null ? (float) $user->latitude : null;
-        $userLongitude = $user->longitude !== null ? (float) $user->longitude : null;
+public function receiverListing(User $user, array $filters = []): array
+{
+    $radiusKm = $this->resolveRadius($filters['radius_km'] ?? null);
+    $categoryId = $filters['category_id'] ?? null;
+    $search = $this->resolveSearch($filters['search'] ?? null);
+    $isFree = $this->resolveIsFree($filters['is_free'] ?? null);
+    $userLatitude = $user->latitude !== null ? (float) $user->latitude : null;
+    $userLongitude = $user->longitude !== null ? (float) $user->longitude : null;
 
-        if (DB::connection()->getDriverName() === 'sqlite' && $userLatitude !== null && $userLongitude !== null) {
-            return $this->sqliteReceiverListing($user, $filters);
-        }
+    if (DB::connection()->getDriverName() === 'sqlite' && $userLatitude !== null && $userLongitude !== null) {
+        return $this->sqliteReceiverListing($user, $filters);
+    }
 
-        $query = WastePost::query()
-            ->with(['wasteCategory', 'user'])
-            ->where('status', WastePostStatus::Available->value)
-            ->when($categoryId, fn (Builder $builder) => $builder->where('waste_category_id', $categoryId))
-            ->latest();
+    $query = WastePost::query()
+        ->with(['wasteCategory', 'user'])
+        ->where('status', WastePostStatus::Available->value)
+        ->when($categoryId, fn (Builder $builder) => $builder->where('waste_category_id', $categoryId))
+        ->when($isFree, fn (Builder $builder) => $builder->where('is_free', true))
+        ->when($search, function (Builder $builder) use ($search) {
+            $builder->where(function (Builder $inner) use ($search) {
+                $inner->where('title', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            });
+        })
+        ->latest();
 
         if ($userLatitude !== null && $userLongitude !== null) {
             $query->selectRaw(
@@ -153,7 +162,17 @@ class WasteListingService
 
         return $radius > 0 ? $radius : null;
     }
+    private function resolveSearch(mixed $value): ?string
+    {
+        $search = is_string($value) ? trim($value) : null;
 
+        return $search !== null && $search !== '' ? $search : null;
+    }
+
+    private function resolveIsFree(mixed $value): bool
+    {
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+    }
     private function distanceKm(float $lat1, float $lng1, float $lat2, float $lng2): float
     {
         return $this->distanceService->between($lat1, $lng1, $lat2, $lng2);
@@ -167,6 +186,8 @@ class WasteListingService
     {
         $radiusKm = $this->resolveRadius($filters['radius_km'] ?? null);
         $categoryId = $filters['category_id'] ?? null;
+        $search = $this->resolveSearch($filters['search'] ?? null);
+        $isFree = $this->resolveIsFree($filters['is_free'] ?? null);
         $userLatitude = (float) $user->latitude;
         $userLongitude = (float) $user->longitude;
 
@@ -174,6 +195,13 @@ class WasteListingService
             ->with(['wasteCategory', 'user'])
             ->where('status', WastePostStatus::Available->value)
             ->when($categoryId, fn (Builder $builder) => $builder->where('waste_category_id', $categoryId))
+            ->when($isFree, fn (Builder $builder) => $builder->where('is_free', true))
+            ->when($search, function (Builder $builder) use ($search) {
+                $builder->where(function (Builder $inner) use ($search) {
+                    $inner->where('title', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            })
             ->latest()
             ->get()
             ->map(function (WastePost $wastePost) use ($radiusKm, $userLatitude, $userLongitude, $user) {

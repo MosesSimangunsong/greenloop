@@ -93,7 +93,9 @@ class WasteClaimController extends Controller
     {
         return [
             'id' => $claim->id,
-            'status' => $claim->status->value,
+            'status' => $claim->status instanceof WasteClaimStatus
+                ? $claim->status->value
+                : $claim->status,
             'receiver_message' => $claim->receiver_message,
             'approved_at' => optional($claim->approved_at)->format('Y-m-d H:i'),
             'rejected_at' => optional($claim->rejected_at)->format('Y-m-d H:i'),
@@ -102,7 +104,9 @@ class WasteClaimController extends Controller
             'waste_post' => [
                 'id' => $claim->wastePost->id,
                 'title' => $claim->wastePost->title,
-                'status' => $claim->wastePost->status->value,
+                'status' => $claim->status instanceof WasteClaimStatus
+                ? $claim->status->value
+                : $claim->status,
                 'category' => $claim->wastePost->wasteCategory?->name,
                 'quantity_kg' => (float) $claim->wastePost->quantity_kg,
             ],

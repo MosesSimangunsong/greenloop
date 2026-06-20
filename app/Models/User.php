@@ -21,6 +21,7 @@ use Illuminate\Notifications\Notifiable;
     'address',
     'latitude',
     'longitude',
+    'location_updated_at',
     'is_active',
 ])]
 #[Hidden(['password', 'remember_token'])]
@@ -29,6 +30,7 @@ use Illuminate\Notifications\Notifiable;
     'password' => 'hashed',
     'latitude' => 'decimal:6',
     'longitude' => 'decimal:6',
+    'location_updated_at' => 'datetime',
     'is_active' => 'boolean',
 ])]
 class User extends Authenticatable
@@ -64,5 +66,19 @@ class User extends Authenticatable
     public function hasRole(string $role): bool
     {
         return $this->roles->contains('name', $role);
+    }
+    public function hasActiveClaimWith(int $otherUserId): bool
+    {
+        $asReceiver = $this->receivedClaims()
+            ->where('status', 'approved')
+            ->where('producer_id', $otherUserId)
+            ->exists();
+
+        $asProducer = $this->producedClaims()
+            ->where('status', 'approved')
+            ->where('receiver_id', $otherUserId)
+            ->exists();
+
+        return $asReceiver || $asProducer;
     }
 }

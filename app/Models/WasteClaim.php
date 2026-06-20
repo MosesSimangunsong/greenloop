@@ -18,14 +18,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'rejected_at',
     'completed_at',
 ])]
-#[Casts([
-    'status' => WasteClaimStatus::class,
-    'approved_at' => 'datetime',
-    'rejected_at' => 'datetime',
-    'completed_at' => 'datetime',
-])]
 class WasteClaim extends Model
 {
+    protected function casts(): array
+    {
+        return [
+            'status' => WasteClaimStatus::class,
+            'approved_at' => 'datetime',
+            'rejected_at' => 'datetime',
+            'completed_at' => 'datetime',
+        ];
+    }
     public function wastePost(): BelongsTo
     {
         return $this->belongsTo(WastePost::class);
