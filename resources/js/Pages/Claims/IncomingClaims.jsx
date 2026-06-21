@@ -36,36 +36,61 @@ export default function IncomingClaims({ claims }) {
 
 function IncomingClaimCard({ claim, onAction }) {
     const isApproved = claim.status === 'approved';
+    const [myLocation, setMyLocation] = useState(null);
     const [receiverLocation, setReceiverLocation] = useState(null);
     const [loadingMap, setLoadingMap] = useState(false);
     const [showMap, setShowMap] = useState(false);
     const [lastUpdated, setLastUpdated] = useState(null);
 
-    const fetchLocation = (silent = false) => {
+    // Ambil lokasi producer sendiri (real-time)
+    useEffect(() => {
+        if (!isApproved) return;
+        const updateMyLocation = () => {
+            navigator.geolocation?.getCurrentPosition(
+                (pos) => setMyLocation({
+                    latitude: pos.coords.latitude,
+                    longitude: pos.coords.longitude,
+                    name: 'Lokasi saya',
+                    color: 'green',
+                }),
+                null,
+                { enableHighAccuracy: true },
+            );
+        };
+        updateMyLocation();
+        const interval = setInterval(updateMyLocation, 15000);
+        return () => clearInterval(interval);
+    }, [isApproved]);
+
+    const fetchReceiverLocation = (silent = false) => {
         if (!silent) setLoadingMap(true);
-        axios.get(route('location.show', { userId: claim.counterparty.id }))
+        axios.get(route('location.show', claim.counterparty.id))
             .then((res) => {
-                setReceiverLocation(res.data);
+                setReceiverLocation({
+                    latitude: Number(res.data.latitude),
+                    longitude: Number(res.data.longitude),
+                    name: res.data.name,
+                    color: 'blue',
+                });
                 setLastUpdated(new Date());
                 setShowMap(true);
             })
-            .catch(() => {
-                if (!silent) alert('Lokasi receiver belum tersedia. Mungkin receiver belum mengaktifkan GPS.');
-            })
+            .catch(() => { if (!silent) alert('Lokasi receiver belum tersedia.'); })
             .finally(() => { if (!silent) setLoadingMap(false); });
     };
 
-    // Auto-polling tiap 15 detik setelah map ditampilkan
+    // Auto-polling lokasi receiver tiap 15 detik
     useEffect(() => {
         if (!showMap) return;
-        const interval = setInterval(() => fetchLocation(true), 15000);
+        const interval = setInterval(() => fetchReceiverLocation(true), 15000);
         return () => clearInterval(interval);
     }, [showMap]);
 
-    const markers = receiverLocation
-        ? [{ latitude: Number(receiverLocation.latitude), longitude: Number(receiverLocation.longitude),
-              label: receiverLocation.name, color: 'blue' }]
-        : [];
+    // Susun markers: receiver (biru) dulu, producer (hijau) kedua
+    const markers = [
+        receiverLocation ? { ...receiverLocation, label: receiverLocation.name || 'Receiver', color: 'blue' } : null,
+        myLocation ? { ...myLocation, label: 'Saya', color: 'green' } : null,
+    ].filter(Boolean);
 
     return (
         <div className="rounded-2xl border border-[#1A1A1A]/8 bg-white p-6">
@@ -106,38 +131,42 @@ function IncomingClaimCard({ claim, onAction }) {
                     <div className="flex items-center gap-2 rounded-xl bg-blue-50 px-3 py-2">
                         <Navigation className="h-3.5 w-3.5 text-blue-600" />
                         <p className="text-xs font-medium text-blue-700">
-                            Receiver sedang dalam perjalanan. Pantau lokasinya di bawah.
+                            Receiver sedang dalam perjalanan menuju lokasi Anda.
                         </p>
                     </div>
 
                     {showMap && markers.length > 0 ? (
                         <div>
                             <div className="mb-2 flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <MapPin className="h-4 w-4 text-blue-600" />
-                                    <p className="text-sm font-semibold text-[#1A1A1A]">Lokasi receiver</p>
+                                <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="h-3 w-3 rounded-full bg-blue-600" />
+                                        <span className="text-xs text-[#1A1A1A]/60">Receiver</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <div className="h-3 w-3 rounded-full bg-[#0F3D2E]" />
+                                        <span className="text-xs text-[#1A1A1A]/60">Saya</span>
+                                    </div>
                                     {lastUpdated && (
                                         <span className="text-xs text-[#1A1A1A]/35">
-                                            • diperbarui {lastUpdated.toLocaleTimeString('id-ID')}
+                                            • {lastUpdated.toLocaleTimeString('id-ID')}
                                         </span>
                                     )}
                                 </div>
-                                <button
-                                    type="button"
-                                    onClick={() => fetchLocation(false)}
-                                    className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-blue-600 hover:bg-blue-50"
-                                >
+                                <button type="button" onClick={() => fetchReceiverLocation(false)}
+                                    className="flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-blue-600 hover:bg-blue-50">
                                     <RefreshCw className="h-3 w-3" />
                                     Refresh
                                 </button>
                             </div>
-                            <LiveMap markers={markers} height="200px" />
+                            <LiveMap markers={markers} height="280px" showRoute={true} />
                         </div>
                     ) : (
-                        <button type="button" onClick={() => fetchLocation(false)} disabled={loadingMap}
+                        <button type="button" onClick={() => fetchReceiverLocation(false)}
+                            disabled={loadingMap}
                             className="flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2.5 text-sm font-semibold text-blue-700 hover:bg-blue-100 disabled:opacity-60">
                             <MapPin className="h-4 w-4" />
-                            {loadingMap ? 'Memuat lokasi...' : 'Pantau lokasi receiver'}
+                            {loadingMap ? 'Memuat peta...' : 'Pantau lokasi receiver'}
                         </button>
                     )}
                 </div>
